@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isStaffOrAdmin() {
+      return isSignedIn() && 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         (getUserData().role == 'Admin' || getUserData().role == 'Staff'));
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData().role == 'Admin');
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Collection: Users
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isStaffOrAdmin();
+      allow create: if isSignedIn() && isOwner(userId) && 
+        incoming().id == userId && 
+        incoming().email == request.auth.token.email &&
+        incoming().role == 'Customer' && 
+        incoming().createdAt is string;
+      
+      allow update: if isSignedIn() && (
+        (isOwner(userId) && 
+         incoming().id == existing().id && 
+         incoming().email == existing().email && 
+         incoming().role == existing().role && 
+         incoming().createdAt == existing().createdAt) 
+        || 
+        (isStaffOrAdmin() && (
+          (incoming().role == existing().role || isAdmin())
+        ))
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // Collection: Products
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Collection: Courses
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Collection: Portfolio
+    match /portfolio/{portfolioId} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Collection: Blogs
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Collection: Inquiries
+    match /inquiries/{inquiryId} {
+      allow create: if incoming().id is string &&
+        incoming().type in ['contact', 'course_registration'] &&
+        incoming().name is string &&
+        incoming().name.size() > 0 &&
+        incoming().email is string &&
+        incoming().email.size() > 0 &&
+        incoming().status == 'Pending' &&
+        incoming().createdAt is string;
+
+      allow get: if isStaffOrAdmin() || (isSignedIn() && existing().email == request.auth.token.email);
+      allow list: if isStaffOrAdmin() || (isSignedIn() && resource.data.email == request.auth.token.email);
+      allow update: if isStaffOrAdmin() && 
+        incoming().id == existing().id && 
+        incoming().type == existing().type && 
+        incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin();
+    }
+  }
+}

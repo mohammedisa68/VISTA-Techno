@@ -1,0 +1,6 @@
+{
+  "name": "VISTA Enterprise Portal",
+  "description": "A modern full-stack platform and administration portal for VISTA, offering technology services, branding, an electronics catalog, course registration, blogging, and business management.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

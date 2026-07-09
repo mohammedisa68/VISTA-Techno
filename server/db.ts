@@ -1,0 +1,515 @@
+import fs from 'fs';
+import path from 'path';
+import { User, Product, Course, PortfolioItem, BlogPost, Inquiry } from '../src/types';
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const DB_FILE = path.join(DATA_DIR, 'db.json');
+
+// Initial Mock Seed Data
+const DEFAULT_USERS: User[] = [
+  { id: 'usr_admin', email: 'mohammedisaabdu@gmail.com', fullName: 'Mohammed Isa', role: 'Admin', password: 'password123', createdAt: new Date().toISOString() },
+  { id: 'usr_staff', email: 'staff@vista.com', fullName: 'David Kalu', role: 'Staff', password: 'password123', createdAt: new Date().toISOString() },
+  { id: 'usr_student', email: 'student@vista.com', fullName: 'Amina Bello', role: 'Student', password: 'password123', createdAt: new Date().toISOString() },
+  { id: 'usr_customer', email: 'customer@vista.com', fullName: 'Marcus Johnson', role: 'Customer', password: 'password123', createdAt: new Date().toISOString() },
+];
+
+const DEFAULT_PRODUCTS: Product[] = [
+  {
+    id: 'prod_1',
+    name: 'VISTA PowerBook Pro 15',
+    description: 'High-performance laptop optimized for digital skills training, coding, and graphic design work. Featuring 16GB RAM, 512GB NVMe SSD, and Intel Core i7.',
+    price: 699,
+    category: 'laptops',
+    image: 'https://images.unsplash.com/photo-1496181130204-755241544e35?w=600&auto=format&fit=crop&q=60',
+    stockStatus: 'In Stock',
+    stockCount: 15,
+    specifications: ['Intel Core i7 11th Gen', '16GB DDR4 RAM', '512GB NVMe SSD', '15.6 inch Full HD IPS Display', 'Windows 11 Pro Pre-installed'],
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'prod_2',
+    name: 'EliteDesk Office PC Tower',
+    description: 'Reliable office desktop built for business performance, website maintenance, and customer relationship operations. High durability and energy efficient.',
+    price: 450,
+    category: 'computers',
+    image: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=600&auto=format&fit=crop&q=60',
+    stockStatus: 'In Stock',
+    stockCount: 8,
+    specifications: ['Intel Core i5', '8GB RAM', '256GB SSD', '8x USB Ports', 'Intel UHD Graphics'],
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'prod_3',
+    name: 'Epson EcoTank Multi-Function Printer',
+    description: 'All-in-one printer perfect for banner prototyping, flyer printing, certificates, and office branding setups. Wireless printing with ink-tank technology.',
+    price: 249,
+    category: 'printers',
+    image: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=600&auto=format&fit=crop&q=60',
+    stockStatus: 'Low Stock',
+    stockCount: 3,
+    specifications: ['Print, Scan, Copy', 'Ultra-low-cost Ink Tank System', 'Wi-Fi & Wi-Fi Direct', 'Borderles Photo Printing'],
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'prod_4',
+    name: '8-Channel UltraHD CCTV Security System',
+    description: 'Complete commercial security solution with 8 smart IP cameras, advanced night vision, and continuous digital video recording. Ideal for office and home security setup.',
+    price: 399,
+    category: 'cctv',
+    image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&auto=format&fit=crop&q=60',
+    stockStatus: 'In Stock',
+    stockCount: 5,
+    specifications: ['8x 4MP IP Weatherproof Cameras', '1x 8-Channel NVR with 2TB HDD', 'Smart Motion Detection Alerts', 'Remote View via Mobile App'],
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'prod_5',
+    name: 'Cisco Managed Gigabit Switch 24-Port',
+    description: 'Reliable networking switch providing enterprise-level throughput for school, NGO, and corporate network deployments. Easy configuration and secure firewall protection.',
+    price: 189,
+    category: 'networking',
+    image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&auto=format&fit=crop&q=60',
+    stockStatus: 'In Stock',
+    stockCount: 12,
+    specifications: ['24x 10/100/1000 Mbps Ports', 'Layer 2 Switching Capabilities', 'Silent Fanless Operation', 'Advanced QoS Traffic Management'],
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'prod_6',
+    name: 'Pro Wireless Keyboard & Mouse Combo',
+    description: 'Sleek, ergonomic desktop accessory kit designed for prolonged coding sessions, digital workshops, and administrative tasks.',
+    price: 35,
+    category: 'accessories',
+    image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop&q=60',
+    stockStatus: 'In Stock',
+    stockCount: 50,
+    specifications: ['2.4 GHz Wireless Connection', '10-meter Range', 'Whisper-quiet Responsive Keys', 'Optical Tracking 1600 DPI Mouse'],
+    createdAt: new Date().toISOString()
+  }
+];
+
+const DEFAULT_COURSES: Course[] = [
+  {
+    id: 'course_1',
+    title: 'Basic Computer & Office Literacy',
+    description: 'Unlock foundational computer operations, typing techniques, file management, and core productivity suites (Microsoft Word, Excel, PowerPoint) for modern workplace excellence.',
+    duration: '4 Weeks',
+    level: 'Beginner',
+    outcomes: ['Confidently operate Windows & macOS', 'Master documents, spreadsheets, and presentations', 'Secure web browsing & email communications', 'Improve typing speed to 40+ WPM'],
+    price: 80,
+    category: 'basic',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'course_2',
+    title: 'Graphic Design & Digital Branding',
+    description: 'Transform your creativity into industry-grade assets. Master vector drawing, layouts, logo styling, and typography using Adobe Illustrator, Photoshop, and Canva.',
+    duration: '6 Weeks',
+    level: 'Intermediate',
+    outcomes: ['Design custom flyers, logos, and stickers', 'Prepare high-resolution banner designs for print', 'Create brand identity guides for corporate clients', 'Manipulate photos with professional software'],
+    price: 120,
+    category: 'design',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'course_3',
+    title: 'Full-Stack Web Development',
+    description: 'Start your coding career by building fully functional web applications. Learn HTML, CSS, JavaScript, React, Tailwind CSS, Node.js, Express, and database management.',
+    duration: '12 Weeks',
+    level: 'Advanced',
+    outcomes: ['Develop responsive multi-page business websites', 'Build integrated e-commerce and school platforms', 'Integrate backends with persistent databases', 'Deploy production-ready systems on Cloud infrastructure'],
+    price: 250,
+    category: 'coding',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'course_4',
+    title: 'Python Coding & Logic Core',
+    description: 'Learn the fundamentals of writing computer programs. Master algorithmic logic, variables, OOP concepts, automation scripts, and build your first backend services.',
+    duration: '8 Weeks',
+    level: 'Beginner',
+    outcomes: ['Master logic flows, loops, and custom classes', 'Develop automated file-processing scripts', 'Interact with API endpoints and remote servers', 'Build functional console-based and simple GUI games'],
+    price: 150,
+    category: 'coding',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'course_5',
+    title: 'ICT & Cybersecurity Workshop',
+    description: 'Practical technology training for local networks, server configuration, CCTV installations, and computer hardware troubleshooting. Safe guarding digital environments.',
+    duration: '2 Weeks',
+    level: 'Intermediate',
+    outcomes: ['Install, splice, and configure network cabling', 'Assemble computers and troubleshoot hardware failures', 'Setup security cameras with continuous NVR recordings', 'Enforce basic router-level cybersecurity policies'],
+    price: 60,
+    category: 'workshop',
+    createdAt: new Date().toISOString()
+  }
+];
+
+const DEFAULT_PORTFOLIO: PortfolioItem[] = [
+  {
+    id: 'port_1',
+    title: 'Brand Identity for Summit Solutions',
+    description: 'A comprehensive printing and branding project including banner prints, custom logo design, premium business cards, and matching staff t-shirts.',
+    category: 'branding',
+    image: 'https://images.unsplash.com/photo-1524169358666-79f22534bc6e?w=600&auto=format&fit=crop&q=60',
+    client: 'Summit Corp',
+    completionDate: 'May 2026',
+    link: '#'
+  },
+  {
+    id: 'port_2',
+    title: 'E-Commerce Website for Al-Ansar Books',
+    description: 'A responsive e-commerce platform built for a local bookstore, showcasing search filters, safe checkout, and a clean backend inventory tracker.',
+    category: 'websites',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=60',
+    client: 'Al-Ansar Bookstore',
+    completionDate: 'April 2026',
+    link: '#'
+  },
+  {
+    id: 'port_3',
+    title: 'Excel & Coding Bootcamp 2026',
+    description: 'A cohort of over 45 students graduating with professional digital skills. 90% placement rate in technology internships and administrative assistant positions.',
+    category: 'success_stories',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=60',
+    client: 'VISTA Academy Cohort II',
+    completionDate: 'March 2026',
+    link: '#'
+  },
+  {
+    id: 'port_4',
+    title: 'Premium Brochures & Rubber Stamps',
+    description: 'Detailed vector print setup and high-precision stamp cutting designed for a local legal firm, showcasing immaculate typography and layout.',
+    category: 'printing',
+    image: 'https://images.unsplash.com/photo-1586075010923-2dd45e9b2d4f?w=600&auto=format&fit=crop&q=60',
+    client: 'Apex Legal Chamber',
+    completionDate: 'January 2026',
+    link: '#'
+  }
+];
+
+const DEFAULT_BLOGS: BlogPost[] = [
+  {
+    id: 'blog_1',
+    title: 'How to Choose the Right Laptop for Graphic Design & Coding',
+    excerpt: 'Do you need a high-end dedicated GPU or is a fast processor enough? We break down the absolute minimum specifications for designer-developers.',
+    content: 'Choosing a laptop for graphic design and software development can be a daunting task. Designers rely heavily on screen color accuracy, rapid graphics processing, and ample screen space. Meanwhile, developers prioritize high RAM capacity, rapid multi-thread processors, and quick SSD reads to compile code and run virtual environments.\n\n### The Core Specifications to Target:\n1. **The Processor (CPU):** Look for at least an Intel Core i5 or AMD Ryzen 5 of the latest generation. For serious compilation or heavy design files, an i7 or Ryzen 7 is highly recommended.\n2. **RAM (Memory):** 8GB is the absolute baseline, but 16GB is the sweet spot. It allows you to run Photoshop, Illustrator, and a code editor like VS Code with a local Node.js server simultaneously without bottlenecking.\n3. **Display Quality:** Insist on an IPS panel. These offer wide viewing angles and high color fidelity. If you can, check for sRGB color coverage above 90%.\n4. **Storage:** Standard HDDs are a relic of the past. Ensure your device features at least a 256GB NVMe SSD, which compiles files up to 10x faster than traditional disks.\n\nAt VISTA, we provide laptops customized exactly for these intense environments and offer digital skill courses where you learn to harness their full capability.',
+    category: 'Technology',
+    image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&auto=format&fit=crop&q=60',
+    author: 'Mohammed Isa',
+    publishedAt: '2026-06-15',
+    readTime: '4 min read'
+  },
+  {
+    id: 'blog_2',
+    title: 'The Blueprint of a Modern Landing Page that Converts',
+    excerpt: 'A beautiful website is useless if visitors leave immediately. Learn the anatomical structure of high-converting business sites.',
+    content: 'Many businesses make the mistake of designing websites that are basically digital brochures. They list every detail of their operations, have five navigation tiers, and offer no clear direction. High-converting landing pages, on the other hand, focus on a single message and a simple goal.\n\n### 1. The Hero Headline & Hook\nYour hero section should answer three questions in under 4 seconds:\n- What is the product or service?\n- How does it improve the customer\'s life?\n- What action should they take next?\n\n### 2. Trust Signals & Testimonials\nBefore people buy or inquire, they seek social proof. Real testimonials, client logos, and certificate listings help potential customers feel secure in choosing you.\n\n### 3. Benefit-Driven Layouts\nInstead of just listing features, focus on the *benefit* of those features. "We print 2400 DPI banners" is a feature. "Banners that pop with vibrant colors and grab immediate roadside attention" is the benefit.\n\nAt VISTA, our Web Development team builds custom platforms designed from the ground up to engage, retain, and convert visitors.',
+    category: 'Coding',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=60',
+    author: 'David Kalu',
+    publishedAt: '2026-06-10',
+    readTime: '5 min read'
+  },
+  {
+    id: 'blog_3',
+    title: 'Brand Consistency: More Than Just a Nice Logo',
+    excerpt: 'Your brand is the mental shorthand of your quality. Discover why typographic pairings and color palettes build client trust.',
+    content: 'A common pitfall for emerging startups is brand fragmentation. They use one font on their business cards, a completely different color scheme on their social media flyers, and an inconsistent logo on their outdoor signboards. \n\nConsistent branding acts as a stamp of professional quality. It implies that you pay close attention to details and run a highly coordinated operation.\n\n### Where Brand Guidelines Create Value:\n- **Emotional Recognition:** Distinctive colors (like VISTA\'s tech-forward deep blues) trigger brand recognition immediately.\n- **Legibility:** Standardizing on 2-3 typography weights keeps digital reading clean and brochures highly professional.\n- **Asset Longevity:** Having well-defined layouts means graphic design work takes less time and resources as templates are readily reusable.\n\nCheck out our Printing & Branding section to see how we help businesses map and print stunning, unified brand assets.',
+    category: 'Graphics',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&auto=format&fit=crop&q=60',
+    author: 'Amina Bello',
+    publishedAt: '2026-06-01',
+    readTime: '3 min read'
+  }
+];
+
+const DEFAULT_INQUIRIES: Inquiry[] = [
+  {
+    id: 'inq_1',
+    type: 'contact',
+    name: 'Samuel Green',
+    email: 'samuel.g@yahoo.com',
+    phone: '+234 812 345 6789',
+    message: 'Hello, I am looking to print 5 large outdoor banners and 100 high-quality business cards for an upcoming conference. Could you provide a quotation and expected timeline?',
+    status: 'Pending',
+    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString()
+  },
+  {
+    id: 'inq_2',
+    type: 'course_registration',
+    name: 'Khadijah Aliyu',
+    email: 'khadijah.ali@gmail.com',
+    phone: '+234 905 112 3344',
+    courseId: 'course_3',
+    message: 'Hello, I want to join the 12-week Full-Stack Web Development cohort. I have some basic coding knowledge and want to specialize in React.',
+    status: 'Enrolled',
+    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+  }
+];
+
+export interface OfficePermissions {
+  appointee: string;
+  market: boolean;
+  learning: boolean;
+  web: boolean;
+  publisher: boolean;
+  admin: boolean;
+}
+
+export interface ManagementSettings {
+  passcode: string;
+  permissions: {
+    [key: string]: OfficePermissions;
+  };
+}
+
+export interface VestaDatabase {
+  users: User[];
+  products: Product[];
+  courses: Course[];
+  portfolio: PortfolioItem[];
+  blogs: BlogPost[];
+  inquiries: Inquiry[];
+  managementSettings: ManagementSettings;
+}
+
+const DEFAULT_SETTINGS: ManagementSettings = {
+  passcode: 'Mohammedvista',
+  permissions: {
+    'Market manager': { appointee: 'Yared Getachew', market: true, learning: false, web: false, publisher: false, admin: false },
+    'Vista Learning': { appointee: 'Kebede Gemeda', market: false, learning: true, web: false, publisher: false, admin: false },
+    'Website development manager': { appointee: 'Selamawit Kebede', market: false, learning: false, web: true, publisher: false, admin: false },
+    'Vista publisher manager': { appointee: 'Alula Tesfaye', market: false, learning: false, web: false, publisher: true, admin: false },
+    'Personal Role': { appointee: 'Mohammed Isa', market: true, learning: true, web: true, publisher: true, admin: true }
+  }
+};
+
+class DatabaseManager {
+  private data: VestaDatabase;
+
+  constructor() {
+    this.data = {
+      users: [...DEFAULT_USERS],
+      products: [...DEFAULT_PRODUCTS],
+      courses: [...DEFAULT_COURSES],
+      portfolio: [...DEFAULT_PORTFOLIO],
+      blogs: [...DEFAULT_BLOGS],
+      inquiries: [...DEFAULT_INQUIRIES],
+      managementSettings: { ...DEFAULT_SETTINGS }
+    };
+    this.init();
+  }
+
+  private init() {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+
+      if (fs.existsSync(DB_FILE)) {
+        const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
+        const parsed = JSON.parse(fileContent);
+        this.data = {
+          users: parsed.users || [...DEFAULT_USERS],
+          products: parsed.products || [...DEFAULT_PRODUCTS],
+          courses: parsed.courses || [...DEFAULT_COURSES],
+          portfolio: parsed.portfolio || [...DEFAULT_PORTFOLIO],
+          blogs: parsed.blogs || [...DEFAULT_BLOGS],
+          inquiries: parsed.inquiries || [...DEFAULT_INQUIRIES],
+          managementSettings: parsed.managementSettings || { ...DEFAULT_SETTINGS }
+        };
+      } else {
+        this.save();
+      }
+    } catch (error) {
+      console.error('Error initializing database:', error);
+    }
+  }
+
+  private save() {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+    } catch (error) {
+      console.error('Error saving database:', error);
+    }
+  }
+
+  // Management Settings Methods
+  getSettings() {
+    return this.data.managementSettings;
+  }
+
+  updateSettings(updates: Partial<ManagementSettings>) {
+    this.data.managementSettings = {
+      ...this.data.managementSettings,
+      ...updates
+    };
+    this.save();
+    return this.data.managementSettings;
+  }
+
+  // Users CRUD
+  getUsers() { return this.data.users; }
+  addUser(user: User) {
+    this.data.users.push(user);
+    this.save();
+    return user;
+  }
+  updateUser(id: string, updates: Partial<User>) {
+    const idx = this.data.users.findIndex(u => u.id === id);
+    if (idx !== -1) {
+      this.data.users[idx] = { ...this.data.users[idx], ...updates };
+      this.save();
+      return this.data.users[idx];
+    }
+    return null;
+  }
+  deleteUser(id: string) {
+    this.data.users = this.data.users.filter(u => u.id !== id);
+    this.save();
+    return true;
+  }
+
+  // Products CRUD
+  getProducts() { return this.data.products; }
+  addProduct(product: Omit<Product, 'id' | 'createdAt'>) {
+    const newProduct: Product = {
+      ...product,
+      id: 'prod_' + Math.random().toString(36).substring(2, 9),
+      createdAt: new Date().toISOString()
+    };
+    this.data.products.push(newProduct);
+    this.save();
+    return newProduct;
+  }
+  updateProduct(id: string, updates: Partial<Product>) {
+    const idx = this.data.products.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      this.data.products[idx] = { ...this.data.products[idx], ...updates };
+      this.save();
+      return this.data.products[idx];
+    }
+    return null;
+  }
+  deleteProduct(id: string) {
+    this.data.products = this.data.products.filter(p => p.id !== id);
+    this.save();
+    return true;
+  }
+
+  // Courses CRUD
+  getCourses() { return this.data.courses; }
+  addCourse(course: Omit<Course, 'id' | 'createdAt'>) {
+    const newCourse: Course = {
+      ...course,
+      id: 'course_' + Math.random().toString(36).substring(2, 9),
+      createdAt: new Date().toISOString()
+    };
+    this.data.courses.push(newCourse);
+    this.save();
+    return newCourse;
+  }
+  updateCourse(id: string, updates: Partial<Course>) {
+    const idx = this.data.courses.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      this.data.courses[idx] = { ...this.data.courses[idx], ...updates };
+      this.save();
+      return this.data.courses[idx];
+    }
+    return null;
+  }
+  deleteCourse(id: string) {
+    this.data.courses = this.data.courses.filter(c => c.id !== id);
+    this.save();
+    return true;
+  }
+
+  // Portfolio CRUD
+  getPortfolio() { return this.data.portfolio; }
+  addPortfolioItem(item: Omit<PortfolioItem, 'id'>) {
+    const newItem: PortfolioItem = {
+      ...item,
+      id: 'port_' + Math.random().toString(36).substring(2, 9)
+    };
+    this.data.portfolio.push(newItem);
+    this.save();
+    return newItem;
+  }
+  updatePortfolioItem(id: string, updates: Partial<PortfolioItem>) {
+    const idx = this.data.portfolio.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      this.data.portfolio[idx] = { ...this.data.portfolio[idx], ...updates };
+      this.save();
+      return this.data.portfolio[idx];
+    }
+    return null;
+  }
+  deletePortfolioItem(id: string) {
+    this.data.portfolio = this.data.portfolio.filter(p => p.id !== id);
+    this.save();
+    return true;
+  }
+
+  // Blogs CRUD
+  getBlogs() { return this.data.blogs; }
+  addBlog(blog: Omit<BlogPost, 'id' | 'publishedAt'>) {
+    const newBlog: BlogPost = {
+      ...blog,
+      id: 'blog_' + Math.random().toString(36).substring(2, 9),
+      publishedAt: new Date().toISOString().split('T')[0]
+    };
+    this.data.blogs.push(newBlog);
+    this.save();
+    return newBlog;
+  }
+  updateBlog(id: string, updates: Partial<BlogPost>) {
+    const idx = this.data.blogs.findIndex(b => b.id === id);
+    if (idx !== -1) {
+      this.data.blogs[idx] = { ...this.data.blogs[idx], ...updates };
+      this.save();
+      return this.data.blogs[idx];
+    }
+    return null;
+  }
+  deleteBlog(id: string) {
+    this.data.blogs = this.data.blogs.filter(b => b.id !== id);
+    this.save();
+    return true;
+  }
+
+  // Inquiries CRUD
+  getInquiries() { return this.data.inquiries; }
+  addInquiry(inquiry: Omit<Inquiry, 'id' | 'status' | 'createdAt'>) {
+    const newInquiry: Inquiry = {
+      ...inquiry,
+      id: 'inq_' + Math.random().toString(36).substring(2, 9),
+      status: 'Pending',
+      createdAt: new Date().toISOString()
+    };
+    this.data.inquiries.push(newInquiry);
+    this.save();
+    return newInquiry;
+  }
+  updateInquiry(id: string, updates: Partial<Inquiry>) {
+    const idx = this.data.inquiries.findIndex(i => i.id === id);
+    if (idx !== -1) {
+      this.data.inquiries[idx] = { ...this.data.inquiries[idx], ...updates };
+      this.save();
+      return this.data.inquiries[idx];
+    }
+    return null;
+  }
+  deleteInquiry(id: string) {
+    this.data.inquiries = this.data.inquiries.filter(i => i.id !== id);
+    this.save();
+    return true;
+  }
+}
+
+export const db = new DatabaseManager();
+export default db;

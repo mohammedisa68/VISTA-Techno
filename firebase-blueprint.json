@@ -1,0 +1,246 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user profile in the application.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique user ID matching request.auth.uid"
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's registered email address"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["Admin", "Staff", "Student", "Customer"],
+          "description": "The role/privilege of the user"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO 8601 creation timestamp"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Optional URL to user avatar picture"
+        }
+      },
+      "required": ["id", "email", "fullName", "role", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Represents a physical product in the VISTA shop.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["computers", "laptops", "printers", "cctv", "networking", "accessories", "office"]
+        },
+        "image": {
+          "type": "string"
+        },
+        "stockStatus": {
+          "type": "string",
+          "enum": ["In Stock", "Low Stock", "Out of Stock"]
+        },
+        "stockCount": {
+          "type": "number"
+        },
+        "specifications": {
+          "type": "array"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name", "description", "price", "category", "image", "stockStatus", "stockCount", "createdAt"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Represents a digital skills course at VISTA Academy.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["Beginner", "Intermediate", "Advanced"]
+        },
+        "outcomes": {
+          "type": "array"
+        },
+        "price": {
+          "type": "number"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["basic", "design", "coding", "development", "literacy", "workshop"]
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "title", "description", "duration", "level", "price", "category", "createdAt"]
+    },
+    "PortfolioItem": {
+      "title": "PortfolioItem",
+      "description": "Represents a branding, design, website, or printing success project.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["websites", "graphic_design", "branding", "printing", "success_stories"]
+        },
+        "image": {
+          "type": "string"
+        },
+        "client": {
+          "type": "string"
+        },
+        "completionDate": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "title", "description", "category", "image"]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Represents a published article or tech tutorial on the blog.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Technology", "Coding", "Graphics", "Entrepreneurship", "Digital Transformation", "Career"]
+        },
+        "image": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "publishedAt": {
+          "type": "string"
+        },
+        "readTime": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "title", "excerpt", "content", "category", "image", "author", "publishedAt", "readTime"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Represents a contact message or a course registration inquiry.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["contact", "course_registration"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "courseId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "Contacted", "Enrolled", "Declined"]
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "type", "name", "email", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "The collection of user profiles."
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "The collection of VISTA hardware items."
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "The collection of courses for VISTA Academy."
+    },
+    "/portfolio/{portfolioId}": {
+      "schema": "PortfolioItem",
+      "description": "The portfolio gallery of completed branding/coding projects."
+    },
+    "/blogs/{blogId}": {
+      "schema": "BlogPost",
+      "description": "Articles published by VISTA team."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "User inquiries and course enrollment registrations."
+    }
+  }
+}
